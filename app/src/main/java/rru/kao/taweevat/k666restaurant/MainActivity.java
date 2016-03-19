@@ -123,7 +123,6 @@ public class MainActivity extends AppCompatActivity {
                             myManage.addValue(2, strFood, strPrice, strSource);
 
                             break;
-
                     }
 
                 } //for
