@@ -1,5 +1,6 @@
 package rru.kao.taweevat.k666restaurant;
 
+import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.StrictMode;
 import android.support.v7.app.AppCompatActivity;
@@ -23,11 +24,10 @@ import java.io.InputStreamReader;
 
 public class MainActivity extends AppCompatActivity {
 
-    //explicit
+    //Explicit
     private MyManage myManage;
     private EditText userEditText, passwordEditText;
     private String userString, passwordString;
-
 
 
     @Override
@@ -35,64 +35,84 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        //Bind widget
-        bindwidget();
-
-
+        //Bind Widget
+        bindWidget();
 
         //Request SQLite
         myManage = new MyManage(this);
 
-        //test add value
+        //Test Add Value
         //testAddValue();
 
-        //delete all sqlite
-        deleteAllSQlite();
+        //Delete All SQLite
+        deleteAllSQLite();
 
-        //Syn Jason to sqlite
-        sysJSONtoSQLite();
-
-
+        //Syn JSON to SQLite
+        synJSONtoSQLite();
 
 
-    }// main method
+    }   // Main Method
 
     public void clickLogin(View view) {
 
         userString = userEditText.getText().toString().trim();
         passwordString = passwordEditText.getText().toString().trim();
 
-
-        //cheack space
+        //Check Space
         if (userString.equals("") || passwordString.equals("")) {
             //Have Space
-            myAlertg("มีช่องว่าง");
-
+            myAlert("มีีช่องว่าง");
         } else {
-
-
-
+            //No Space
+            checkUser();
         }
 
 
-    } //clicklogin
+    }   // clickLogin
 
-    private void myAlertg(String strMessage) {
+    private void checkUser() {
+
+        try {
+
+            String[] myResultStrings = myManage.searchUser(userString);
+
+            //Check Password
+            if (passwordString.equals(myResultStrings[2])) {
+                //Password True
+                Intent intent = new Intent(MainActivity.this, OrderActivity.class);
+                intent.putExtra("Officer", myResultStrings[3]);
+                startActivity(intent);
+                finish();
+
+
+            } else {
+                //Password False
+                myAlert("Password ผิิด");
+
+            }
+
+
+            myAlert("ยินดีต้อนรับ " + myResultStrings[3]);
+
+        } catch (Exception e) {
+            myAlert("ไม่มี " + userString + " ในฐานข้อมูลของเรา");
+        }
+
+    }   // checkUser
+
+    private void myAlert(String strMessage) {
         Toast.makeText(MainActivity.this, strMessage, Toast.LENGTH_SHORT).show();
-
     }
 
-    private void bindwidget() {
 
+    private void bindWidget() {
         userEditText = (EditText) findViewById(R.id.editText);
         passwordEditText = (EditText) findViewById(R.id.editText2);
-
-
     }
 
-    private void sysJSONtoSQLite() {
+    private void synJSONtoSQLite() {
 
-        //Connect http://
+        //Connected http://
         StrictMode.ThreadPolicy threadPolicy = new StrictMode.ThreadPolicy
                 .Builder().permitAll().build();
         StrictMode.setThreadPolicy(threadPolicy);
@@ -102,8 +122,8 @@ public class MainActivity extends AppCompatActivity {
 
             //1 Create InputStream
             InputStream inputStream = null;
-            String[] urlStrings = {"http://swiftcodingthai.com/19Mar/php_get_user_kao.php",
-                    "http://swiftcodingthai.com/19Mar/php_get_food_kao.php"};
+            String[] urlStrings = {"http://swiftcodingthai.com/19Mar/php_get_user_master.php",
+                    "http://swiftcodingthai.com/19Mar/php_get_food_master.php"};
 
             try {
 
@@ -114,8 +134,9 @@ public class MainActivity extends AppCompatActivity {
                 inputStream = httpEntity.getContent();
 
             } catch (Exception e) {
-                Log.d("Rest", "InputStream ==>" + e.toString());
+                Log.d("Rest", "InputStream ==> " + e.toString());
             }
+
 
             //2 Create JSON String
             String strJSON = null;
@@ -133,11 +154,9 @@ public class MainActivity extends AppCompatActivity {
                 inputStream.close();
                 strJSON = stringBuilder.toString();
 
-
             } catch (Exception e) {
-                Log.d("Rest", "JSON String ==>" + e.toString());
+                Log.d("Rest", "JSON String ==> " + e.toString());
             }
-
 
             //3 Update to SQLite
             try {
@@ -146,7 +165,6 @@ public class MainActivity extends AppCompatActivity {
                 for (int i = 0; i < jsonArray.length(); i++) {
 
                     JSONObject jsonObject = jsonArray.getJSONObject(i);
-
 
                     switch (intTable) {
                         case 0:
@@ -169,34 +187,33 @@ public class MainActivity extends AppCompatActivity {
                             break;
                     }
 
-                } //for
+                }   // for
 
 
             } catch (Exception e) {
-                Log.d("Rest", "Update SQLite ==>" + e.toString());
+                Log.d("Rest", "Update SQLite ==> " + e.toString());
             }
 
 
-            intTable += 1;
-        }//while
 
 
-    } //Syn Jason to sqlite
+            intTable++;
+        }   // while
 
-    private void deleteAllSQlite() {
 
+
+    }   // synJSON
+
+    private void deleteAllSQLite() {
         SQLiteDatabase sqLiteDatabase = openOrCreateDatabase(MyOpenHelper.database_name,
                 MODE_PRIVATE, null);
         sqLiteDatabase.delete(MyManage.user_table, null, null);
         sqLiteDatabase.delete(MyManage.food_table, null, null);
-
     }
 
     private void testAddValue() {
         myManage.addValue(1, "user", "pass", "name");
         myManage.addValue(2, "food", "price", "source");
-
     }
 
-
-} //main class
+}   // Main Class
